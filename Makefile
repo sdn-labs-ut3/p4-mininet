@@ -49,11 +49,12 @@ endif
 
 all: run
 
+# P4_EXTRA_SUDO_OPTS is set in p4setup.bash
 run: build
-	sudo -E python3 $(RUN_SCRIPT) $(run_args)
+	sudo PATH=$(PATH) ${P4_EXTRA_SUDO_OPTS} python3 $(RUN_SCRIPT) $(run_args)
 
 stop:
-	sudo PATH=$(PATH) mn -c
+	sudo PATH=$(PATH) `which mn` -c
 
 build: dirs $(BUILD_DIR)/$(COMPILED_JSON)
 
