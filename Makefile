@@ -53,7 +53,7 @@ run: build
 	sudo -E python3 $(RUN_SCRIPT) $(run_args)
 
 stop:
-	sudo mn -c
+	sudo PATH=$(PATH) mn -c
 
 build: dirs $(BUILD_DIR)/$(COMPILED_JSON)
 
