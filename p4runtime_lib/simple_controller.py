@@ -34,6 +34,9 @@ def info(msg):
 class ConfException(Exception):
     pass
 
+class InvalidFileContentException(ConfException):
+    pass
+
 
 def main():
     parser = argparse.ArgumentParser(description='P4Runtime Simple Controller')
@@ -87,6 +90,13 @@ def check_switch_conf(sw_conf, workdir):
         real_path = os.path.join(workdir, sw_conf[conf_key])
         if not os.path.exists(real_path):
             raise ConfException("file does not exist %s" % real_path)
+        # check for file content (e.g. JSON format for bmv2_json)
+        if conf_key == "bmv2_json":
+            with open(real_path, 'r') as f:
+                try:
+                    json.load(f)  # Check if the file can be parsed as JSON
+                except json.JSONDecodeError as e:
+                    raise InvalidFileContentException(f"Invalid JSON content in {real_path}: {e}")
 
 
 def program_switch(addr, device_id, sw_conf_file, workdir, proto_dump_fpath, runtime_json):
@@ -154,7 +164,8 @@ def validateTableEntry(flow, p4info_helper, runtime_json):
     priority = flow.get('priority')  # None if not found
     match_types_with_priority = [
         p4info_pb2.MatchField.TERNARY,
-        p4info_pb2.MatchField.RANGE
+        p4info_pb2.MatchField.RANGE,
+        p4info_pb2.MatchField.OPTIONAL
     ]
     if match_fields is not None and (priority is None or priority == 0):
         for match_field_name, _ in match_fields.items():

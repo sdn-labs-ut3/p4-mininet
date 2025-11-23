@@ -23,7 +23,7 @@ This package contains several helper functions for encoding to and decoding from
 - Ethernet address strings
 '''
 
-mac_pattern = re.compile('^([\da-fA-F]{2}:){5}([\da-fA-F]{2})$')
+mac_pattern = re.compile(r'^([\da-fA-F]{2}:){5}([\da-fA-F]{2})$')
 def matchesMac(mac_addr_string):
     return mac_pattern.match(mac_addr_string) is not None
 
@@ -33,7 +33,7 @@ def encodeMac(mac_addr_string):
 def decodeMac(encoded_mac_addr):
     return ':'.join(s.hex() for s in encoded_mac_addr)
 
-ip_pattern = re.compile('^(\d{1,3}\.){3}(\d{1,3})$')
+ip_pattern = re.compile(r'^(\d{1,3}\.){3}(\d{1,3})$')
 def matchesIPv4(ip_addr_string):
     return ip_pattern.match(ip_addr_string) is not None
 
@@ -42,6 +42,19 @@ def encodeIPv4(ip_addr_string):
 
 def decodeIPv4(encoded_ip_addr):
     return socket.inet_ntoa(encoded_ip_addr)
+
+def matchesIPv6(ip_addr_string):
+    try:
+        socket.inet_pton(socket.AF_INET6, ip_addr_string)
+        return True
+    except socket.error:
+        return False
+
+def encodeIPv6(ip_addr_string):
+    return socket.inet_pton(socket.AF_INET6, ip_addr_string)
+
+def decodeIPv6(encoded_ip_addr):
+    return socket.inet_ntop(socket.AF_INET6, encoded_ip_addr) 
 
 def bitwidthToBytes(bitwidth):
     return int(math.ceil(bitwidth / 8.0))
@@ -77,6 +90,8 @@ def encode(x, bitwidth):
             encoded_bytes = encodeMac(x)
         elif matchesIPv4(x):
             encoded_bytes = encodeIPv4(x)
+        elif matchesIPv6(x):
+            encoded_bytes = encodeIPv6(x)
         else:
             # Assume that the string is already encoded
             encoded_bytes = x
@@ -89,18 +104,29 @@ def encode(x, bitwidth):
 
 if __name__ == '__main__':
     # TODO These tests should be moved out of main eventually
+
+    # Test encoding and decoding for MAC address
     mac = "aa:bb:cc:dd:ee:ff"
     enc_mac = encodeMac(mac)
     assert(enc_mac == '\xaa\xbb\xcc\xdd\xee\xff')
     dec_mac = decodeMac(enc_mac)
     assert(mac == dec_mac)
 
-    ip = "10.0.0.1"
-    enc_ip = encodeIPv4(ip)
-    assert(enc_ip == '\x0a\x00\x00\x01')
-    dec_ip = decodeIPv4(enc_ip)
-    assert(ip == dec_ip)
+    # Test encoding and decoding for IPv4 address
+    ip0 = "10.0.0.1"
+    enc_ipv4 = encodeIPv4(ip0)
+    assert(enc_ipv4 == '\x0a\x00\x00\x01')
+    dec_ipv4 = decodeIPv4(enc_ipv4)
+    assert(ip0 == dec_ipv4)
 
+    # Test encoding and decoding for IPv6 address
+    ip1 = "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+    enc_ipv6 = encodeIPv6(ip1)
+    assert(enc_ipv6 == '\x01\r\xb8\x85\xa3\x00\x00\x00\x00\x8a.\x03ps4')
+    dec_ipv6 = decodeIPv6(enc_ipv6)
+    assert(ip1 == dec_ipv6)
+
+    # Test encoding and decoding for a number
     num = 1337
     byte_len = 5
     enc_num = encodeNum(num, byte_len * 8)
@@ -113,8 +139,15 @@ if __name__ == '__main__':
     assert(not matchesIPv4('1000.0.0.1'))
     assert(not matchesIPv4('10001'))
 
+    assert(matchesIPv6('2001:0db8:85a3:0000:0000:8a2e:0370:7334'))
+    assert(not matchesIPv6('241.54.113.65'))
+    assert(not matchesIPv6('::1::2'))
+    assert(not matchesIPv6('192.168.1.1'))
+
+    # Test generic encoding function
     assert(encode(mac, 6 * 8) == enc_mac)
-    assert(encode(ip, 4 * 8) == enc_ip)
+    assert(encode(ip0, 4 * 8) == enc_ipv4)
+    assert(encode(ip1, 16 * 8) == enc_ipv6)
     assert(encode(num, 5 * 8) == enc_num)
     assert(encode((num,), 5 * 8) == enc_num)
     assert(encode([num], 5 * 8) == enc_num)

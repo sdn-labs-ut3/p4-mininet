@@ -35,6 +35,10 @@ class P4RuntimeErrorFormatException(Exception):
 # index of the operation in the batch that failed and the second element being
 # the p4.Error Protobuf message.
 def parseGrpcErrorBinaryDetails(grpc_error):
+    # Check if grpc_error is None or not an instance of grpc.RpcError
+    if not grpc_error or not isinstance(grpc_error, grpc.RpcError):
+        raise P4RuntimeErrorFormatException(f"Invalid gRPC error object: {grpc_error}")
+        
     if grpc_error.code() != grpc.StatusCode.UNKNOWN:
         return None
 
