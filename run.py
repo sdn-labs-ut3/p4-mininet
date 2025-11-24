@@ -21,9 +21,10 @@
 #
 
 # Edit E. Lavinal, Université de Toulouse (France)
-# Renaming run_exercice.py --> run.py
-# Print Thrift port when configuring P4RuntimeSwitch
-# Add log level and priority-queues arguments
+# - Renaming run_exercice.py --> run.py
+# - Print Thrift port when configuring P4RuntimeSwitch
+# - Add log level and priority-queues arguments
+# - Add disableIPv6() call in program_hosts() function
 
 import argparse
 import json
@@ -330,6 +331,9 @@ class ExerciseRunner:
             if "commands" in host_info:
                 for cmd in host_info["commands"]:
                     h.cmd(cmd)
+            # EDIT EL, {"ipv6": false} -> disableIPv6
+            if "ipv6" in host_info and not host_info["ipv6"]:
+                h.disableIPv6()
 
 
     def do_net_cli(self):

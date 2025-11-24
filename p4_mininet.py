@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 # Copyright 2013-present Barefoot Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+# Edit E. Lavinal, Université de Toulouse (France)
+# Add disableIPv6() function in P4Host.
 
 import os
 import tempfile
@@ -35,12 +39,15 @@ class P4Host(Host):
             cmd = "/sbin/ethtool --offload eth0 %s off" % off
             self.cmd(cmd)
 
+        return r
+
+    # EDIT EL
+    def disableIPv6(self):
+        print("Disabling IPv6 on %s." % self.name)
         # disable IPv6
         self.cmd("sysctl -w net.ipv6.conf.all.disable_ipv6=1")
         self.cmd("sysctl -w net.ipv6.conf.default.disable_ipv6=1")
         self.cmd("sysctl -w net.ipv6.conf.lo.disable_ipv6=1")
-
-        return r
 
     def describe(self):
         print("**********")
