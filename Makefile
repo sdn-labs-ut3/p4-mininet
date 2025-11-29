@@ -3,7 +3,8 @@ PCAP_DIR = pcaps
 LOG_DIR = logs
 
 P4C = p4c-bm2-ss
-P4C_ARGS += --p4runtime-files $(basename $@).p4.p4info.txtpb
+P4C_ARGS += --p4runtime-files $(basename $@).p4.p4info.txt
+# .txt --> .txtpb (to update in the future)
 
 # Define the path of this P4 Mininet dir (TO UPDATE ACCORDING TO YOUR SETTINGS)
 ifndef P4_MININET
